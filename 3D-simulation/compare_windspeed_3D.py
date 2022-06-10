@@ -20,7 +20,7 @@ total_error_mean = []
 total_error_bouts = []
 
 # Load data
-for ws in [0.75]:
+for ws in [0.25, 0.5, 0.75, 1.0]:
     directory = os.path.join(rf"C:\Users\Malik\Documents\Ecole\EPFL\Master\MA2\Semester project\GSL_using_mox_sensors\3D-simulation\logs_webots\ws_{ws}")
     for root, dirs, files in os.walk(directory):
         list_W = []
@@ -53,7 +53,7 @@ for ws in [0.75]:
         i = i+1
 
     # Plot results
-    for exp_numb in range(len(list_W)):
+    for exp_numb in [0, 1]:
         list_W[exp_numb].plotGasMap(map_type='mean', timeframe=[tc-delta/2, tc+delta/2], tsl=list_tsl[exp_numb])
         list_W[exp_numb].plotGasMap(map_type='bouts-freq', timeframe=[tc-delta/2, tc+delta/2], bouts_hl=half_life,
                                     bouts_ampthresh=list_bouts_amp_thresh[exp_numb], tsl=list_tsl[exp_numb])
@@ -71,21 +71,21 @@ error_max = np.amax(np.array([total_error_mean, total_error_bouts]))
 
 plt.figure()
 plt.boxplot(total_error_mean)
-plt.title('Performance of mean response for various wind speed')
+plt.title('Localization error of mean concentration for various wind speed in 3D')
 plt.xlabel('Wind speed [m/s]')
 plt.ylabel('Localization error [m]')
 plt.xticks([1, 2, 3, 4], [0.25, 0.5, 0.75, 1.0])
 #plt.ylim(0, error_max+0.1*error_max)
-plt.savefig('boxplot_mean.eps')
+plt.savefig('boxplot_mean_3D.png')
 
 plt.figure()
 plt.boxplot(total_error_bouts)
-plt.title('Performance of bouts algorithm for various wind speed')
+plt.title('Localization error of bouts algorithm for various wind speed in 3D')
 plt.xlabel('Wind speed [m/s]')
 plt.ylabel('Localization error [m]')
 plt.xticks([1, 2, 3, 4], [0.25, 0.5, 0.75, 1.0])
 # plt.ylim(0, error_max+0.1*error_max)
-plt.savefig('boxplot_bouts.eps')
+plt.savefig('boxplot_bouts_3D.png')
 
 
 plt.show()

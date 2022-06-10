@@ -284,7 +284,8 @@ class wsn:
             if plot:
                 kl.plot_knee()
             threshold = total_amps_sorted[kl.knee]
-            print(method, threshold)
+            if plot:
+                print(method, threshold)
         return threshold
 
 
