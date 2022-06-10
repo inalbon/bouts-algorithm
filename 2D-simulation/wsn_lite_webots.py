@@ -202,22 +202,19 @@ class wsn:
         z_real = [0.1]
 
         for z in range(1):
-            im = self._plotGasMapSlice(fig, ax, gmap[0, :, :],
-                                       clims=clims, cm=cm, norm=norm, cb_lbl=cb_lbl)
+            im = self._plotGasMapSlice(fig, ax, gmap[0, :, :], clims=clims, cm=cm, norm=norm, cb_lbl=cb_lbl)
             ax.text(20, 2.0, 'Z = {0:.2f} m'.format(z_real[z]), rotation=0, fontsize=7)
 
         # display true source location (tsl)
         if tsl is not None:
-            ax.plot(tsl[2], tsl[1], marker='.', markerfacecolor="tab:green",
-                                       markeredgecolor="tab:green", markersize=2.5)
-
-        #print(f'TSL = ({tsl[2]}, {tsl[1]})')
+            ax.plot(tsl[2], tsl[1], marker='.', markerfacecolor="tab:green", markeredgecolor="tab:green",
+                    markersize=2.5)
 
         # display maximum estimate
         index = np.unravel_index(np.argmax(np.array(gmap), axis=None), np.array(gmap).shape)
-        #print(f'max value = ({index[2]/2+1}, {index[1]/2+0.5}, {z_real[index[0]]})')
-        ax.plot(index[2]/2+1, index[1]/2+0.5, marker='.',
-                                  markerfacecolor="tab:blue", markeredgecolor="tab:blue", markersize=2.5)
+        ax.plot(index[2]/2+1, index[1]/2+0.5, marker='.', markerfacecolor="tab:blue", markeredgecolor="tab:blue",
+                markersize=2.5)
+
         ax.axis(xmin=0, xmax=16, ymin=0, ymax=4)
         return ax, im
 
@@ -226,7 +223,7 @@ class wsn:
         index = np.unravel_index(np.argmax(np.array(gmap), axis=None), np.array(gmap).shape)
         z_real = [0.1]
         est_source = np.array([z_real[index[0]], index[1]/2+0.5, index[2]/2+1])  # (z, y, x)
-        print(f'estimated source {est_source[2], est_source[1], est_source[0]} and tsl {tsl}')
+        #print(f'estimated source {est_source[2], est_source[1], est_source[0]} and tsl {tsl[2], tsl[1], tsl[0]}')
         error = np.linalg.norm(est_source-np.array(tsl))
         return error
 
@@ -262,28 +259,33 @@ class wsn:
         # Compute amps threshold
         if method == 'std':
             threshold = np.std(total_amps)
-        if method == 'max':
+        elif method == 'max':
             threshold = max(total_amps)
-        if method == 'mean':
+        elif method == 'mean':
             threshold = np.mean(total_amps)
-        if method == 'median':
+        elif method == 'median':
             threshold = np.median(total_amps)
-        if method == 'middle':
+        elif method == 'middle':
             threshold = (max(total_amps)-min(total_amps))/2
-        if method == 'percentage':
+        elif method == 'percentage':
             total_amps_sorted = sorted(total_amps)
             if plot:
                 plt.figure()
                 plt.plot(total_amps_sorted)
             threshold = total_amps_sorted[int(len(total_amps)*0.9)]
-        if method == 'knee':
+        elif method == 'knee':
             total_amps_sorted = sorted(total_amps)
             kl = KneeLocator(range(len(total_amps_sorted)), total_amps_sorted, curve='convex')
             if plot:
                 kl.plot_knee()
             threshold = total_amps_sorted[kl.knee]
+        elif method == 'zero':
+            threshold = 0
+        else:
+            quit('Wrong method entered for bouts amplitude threshold')
 
         if plot:
             print(method, threshold)
+
         return threshold
 

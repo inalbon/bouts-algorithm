@@ -217,14 +217,11 @@ class wsn:
                                        markeredgecolor="tab:green", markersize=2.5)
             ax[inv_ax[tsl_slice]].axis(xmin=0, xmax=16, ymin=0, ymax=4)
 
-        #print(f'TSL = ({tsl[2]}, {tsl[1]}, {tsl_slice})')
-
         # display maximum estimate
         index = np.unravel_index(np.argmax(np.array(gmap), axis=None), np.array(gmap).shape)
-        #print(f'index max value = ({index[2]}, {index[1]}, {index[0]})')
         ax[inv_ax[index[0]]].plot(index[2]/2+7.5, index[1]/2+1, marker='.',
                                   markerfacecolor="tab:blue", markeredgecolor="tab:blue", markersize=2.5)
-        #print(f'max value = ({index[2]/2+7.5}, {index[1]/2+1}, {index[0]})')
+
         ax[inv_ax[index[0]]].axis(xmin=0, xmax=16, ymin=0, ymax=4)
         return ax, im
 
@@ -233,6 +230,7 @@ class wsn:
         index = np.unravel_index(np.argmax(np.array(gmap), axis=None), np.array(gmap).shape)
         z_real = [1.0, 1.2, 1.4]
         est_source = np.array([z_real[index[0]], index[1]/2+1, index[2]/2+7.5])  # (z, y, x)
+        #print(f'estimated source {est_source[2], est_source[1], est_source[0]} and tsl {tsl[2], tsl[1], tsl[0]}')
         error = np.linalg.norm(est_source-np.array(tsl))
         return error
 
@@ -267,18 +265,18 @@ class wsn:
         # Compute amps threshold
         if method == 'mean':
             threshold = np.mean(total_amps)
-        if method == 'median':
+        elif method == 'median':
             threshold = np.median(total_amps)
-        if method == 'middle':
+        elif method == 'middle':
             threshold = (max(total_amps) - min(total_amps)) / 2
-        if method == 'percentage':
+        elif method == 'percentage':
             total_amps_sorted = sorted(total_amps)
             if plot:
                 plt.figure()
                 plt.plot(total_amps_sorted)
             threshold = total_amps_sorted[int(len(total_amps) * 0.9)]
             print(threshold)
-        if method == 'knee':
+        elif method == 'knee':
             total_amps_sorted = sorted(total_amps)
             kl = KneeLocator(range(len(total_amps_sorted)), total_amps_sorted, curve='convex')
             if plot:
@@ -286,6 +284,8 @@ class wsn:
             threshold = total_amps_sorted[kl.knee]
             if plot:
                 print(method, threshold)
+        else:
+            quit('Wrong method entered for bouts amplitude threshold')
         return threshold
 
 

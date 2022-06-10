@@ -15,6 +15,7 @@ tc = 2.5/60  # minutes
 # Parameters
 half_life = 0.03  # seconds DEFAULT VALUE IS 0.25 [s]
 bouts_amp_thresh = 0  # DEFAULT VALUE IS 0.13
+bout_amp_meth = 'zero'
 
 total_error_mean = []
 total_error_bouts = []
@@ -22,15 +23,13 @@ total_error_bouts = []
 # Load data
 for env in ['free', 'cluttered']:
     directory = os.path.join(rf"C:\Users\Malik\Documents\Ecole\EPFL\Master\MA2\Semester project\GSL_using_mox_sensors\2D-simulation\logs_webots\{env}")
-    print(directory)
     for root, dirs, files in os.walk(directory):
         list_W = []
         list_tsl = []
-        print(files)
         for file in files:
             if file.endswith(".csv"):
                 list_W.append(wsn_lite_webots.wsn(file, env))
-                m1 = re.search('spx_', file).span()  # spx coord.
+                m1 = re.search('spx', file).span()  # spx coord.
                 m2 = re.search('_spy', file).span()  # spy coord.
                 m3 = re.search('_spz', file).span()  # spz coord.
                 m4 = re.search(f'_{env}', file).span()  # ws coord.
@@ -38,7 +37,8 @@ for env in ['free', 'cluttered']:
                     list_tsl.append([float(file[m3[1]:m4[0]]), float(file[m2[1]:m3[0]]), float(file[m1[1]:m2[0]])])
                 else:
                     quit('WARNING: problem when reading files')
-    print('TSL', list_tsl)
+
+    # Initialize lists
     list_bouts_amp_thresh = []
     error_bout = []
     error_mean = []
@@ -47,18 +47,19 @@ for env in ['free', 'cluttered']:
     i = 0
     for W in list_W:
         list_bouts_amp_thresh.append(W.compute_bouts_amps_threshold(timeframe=[tc - delta / 2, tc + delta / 2],
-                                                                  hl=half_life, method='knee', plot=False))
+                                                                    hl=half_life, method=bout_amp_meth, plot=False))
 
         error_mean.append(W.computeError(map_type='mean', timeframe=[tc-delta / 2, tc+delta / 2], tsl=list_tsl[i]))
         error_bout.append(W.computeError(map_type='bouts-freq', timeframe=[tc-delta/2, tc+delta/2], tsl=list_tsl[i],
                                          bouts_hl=half_life, bouts_ampthresh=list_bouts_amp_thresh[i]))
         i = i+1
 
-    # Plot results
-    for exp_numb in [0, 1, 2, 3]:
-        list_W[exp_numb].plotGasMap(map_type='mean', timeframe=[tc-delta/2, tc+delta/2], tsl=list_tsl[exp_numb])
-        list_W[exp_numb].plotGasMap(map_type='bouts-freq', timeframe=[tc-delta/2, tc+delta/2], bouts_hl=half_life,
-                                    bouts_ampthresh=list_bouts_amp_thresh[exp_numb], tsl=list_tsl[exp_numb])
+    if env == 'cluttered':
+        # Plot results
+        for exp_numb in range(len(list_W)):
+            list_W[exp_numb].plotGasMap(map_type='mean', timeframe=[tc-delta/2, tc+delta/2], tsl=list_tsl[exp_numb])
+            list_W[exp_numb].plotGasMap(map_type='bouts-freq', timeframe=[tc-delta/2, tc+delta/2], bouts_hl=half_life,
+                                        bouts_ampthresh=list_bouts_amp_thresh[exp_numb], tsl=list_tsl[exp_numb])
 
     # Store error for each wind speed
     total_error_mean.append(error_mean)
