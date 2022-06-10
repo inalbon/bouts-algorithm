@@ -137,7 +137,7 @@ class wsn:
         if norm is None:
             norm=mpl.colors.Normalize(clims[0], clims[1], True)
 
-        extent = [1, 15, 0.5, 3.5]
+        extent = [7.5, 15, 1, 3]
         im_map = ax.imshow(gmap_slice, extent=extent, aspect='equal',
                         norm=norm, origin='lower', interpolation=interp,  cmap=cm)
 
@@ -201,7 +201,7 @@ class wsn:
         if clims is None:
             clims = [0, np.max(gmap)]
 
-        z_real = [0.1, 0.2, 0.3]
+        z_real = [1, 1.2, 1.4]
         inv_ax = [2, 1, 0]
 
         for z in range(3):
@@ -215,26 +215,24 @@ class wsn:
             tsl_slice = np.argmin([abs(tsl[0] - z_real[0]), abs(tsl[0] - z_real[1]), abs(tsl[0] - z_real[2])])
             ax[inv_ax[tsl_slice]].plot(tsl[2], tsl[1], marker='.', markerfacecolor="tab:green",
                                        markeredgecolor="tab:green", markersize=2.5)
+            ax[inv_ax[tsl_slice]].axis(xmin=0, xmax=16, ymin=0, ymax=4)
 
         #print(f'TSL = ({tsl[2]}, {tsl[1]}, {tsl_slice})')
 
         # display maximum estimate
         index = np.unravel_index(np.argmax(np.array(gmap), axis=None), np.array(gmap).shape)
-        print(f'index max value = ({index[2]}, {index[1]}, {index[0]})')
+        #print(f'index max value = ({index[2]}, {index[1]}, {index[0]})')
         ax[inv_ax[index[0]]].plot(index[2]/2+7.5, index[1]/2+1, marker='.',
                                   markerfacecolor="tab:blue", markeredgecolor="tab:blue", markersize=2.5)
-        print(f'max value = ({index[2]/2+7.5}, {index[1]/2+1}, {index[0]})')
+        #print(f'max value = ({index[2]/2+7.5}, {index[1]/2+1}, {index[0]})')
         ax[inv_ax[index[0]]].axis(xmin=0, xmax=16, ymin=0, ymax=4)
         return ax, im
-
 
     def computeError(self, map_type, timeframe, tsl, bouts_hl=None, bouts_ampthresh=None):
         gmap = self._computeGasMap(map_type, timeframe, bouts_hl, bouts_ampthresh)
         index = np.unravel_index(np.argmax(np.array(gmap), axis=None), np.array(gmap).shape)
-        sensor = [1, 3, 5]
-        z_real = [0.45, 1.2, 2.23]
-        est_source = np.array([z_real[index[0]], sensor[index[1]], sensor[index[2]]])  # (z, y, x)
-        print(f'estimated source {est_source} and tsl {tsl}')
+        z_real = [1.0, 1.2, 1.4]
+        est_source = np.array([z_real[index[0]], index[1]/2+1, index[2]/2+7.5])  # (z, y, x)
         error = np.linalg.norm(est_source-np.array(tsl))
         return error
 
@@ -261,7 +259,11 @@ class wsn:
             plt.plot(total_amps)
             plt.xlabel('bouts detected by all sensors')
             plt.ylabel('bouts amplitude')
-
+        if plot:
+            plt.figure()
+            plt.hist(total_amps)
+            plt.title('Histogram of all bouts amplitude')
+            plt.xlabel('Bouts amplitude')
         # Compute amps threshold
         if method == 'mean':
             threshold = np.mean(total_amps)
@@ -282,7 +284,7 @@ class wsn:
             if plot:
                 kl.plot_knee()
             threshold = total_amps_sorted[kl.knee]
-            print(threshold)
+            print(method, threshold)
         return threshold
 
 

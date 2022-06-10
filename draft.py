@@ -43,11 +43,11 @@ import matplotlib.pyplot as plt
 #
 # error1 = np.linalg.norm(np.array([0, 2, 3])-np.array([1, 1, 3]))
 # error2 = np.linalg.norm(np.array([3, 2, 0])-np.array([3, 1, 1]))
-s = np.array([2, 1, 3, -2, 1, 3, -1, 0, 1, 0, -2])
+s = np.array([0, 0.5, 2, 3, 4, 3, -1, 0, 1, 0, -2, 5, 6, 8, 1, -4, -5, -2, 0, 1, 5, 2])
 sd_thr = 0
 sd = np.diff(s)
-plt.plot(s, label='signal')
-plt.plot(sd, label='derivative')
+plt.plot(s, label=r'Smoothed signal $x_s$')
+plt.plot(sd, label=r'Smoothed derivative signal $\dot{x}_s$')
 plt.legend()
 plt.grid(True)
 sd_pos = sd >= sd_thr  # positive part of the derivative
@@ -70,9 +70,28 @@ posneg = np.zeros((2, len(pos_changes)))
 posneg[0, :] = pos_changes
 posneg[1, :] = neg_changes
 
+for b in range(len(pos_changes)):
+    plt.plot(np.arange(pos_changes[b], neg_changes[b]+1), sd[pos_changes[b]:neg_changes[b]+1], color='r')
+
+for b in range(len(pos_changes)):
+    plt.plot(pos_changes[b], sd[pos_changes[b]], marker='.',
+             markerfacecolor='None', markeredgecolor="tab:green", markersize=10)
+
+    plt.plot(neg_changes[b], sd[neg_changes[b]], marker='.',
+             markerfacecolor='None', markeredgecolor="tab:red", markersize=10)
 print(posneg)
+
+test_histo = [4.1, 4.3, 5, 4.2, 5, 3, 3, 5, 1, 1, 1]
+plt.figure()
+plt.hist(test_histo)
+
+list_fruits = []
+for i in range(10):
+    list_fruits.append('apple')
+
+print(list_fruits)
+list_fruits = []
+print(list_fruits)
+
+
 plt.show()
-
-
-
-

@@ -22,23 +22,24 @@ tc = 0  # minutes
 half_life = 0.01  # seconds DEFAULT VALUE IS 0.25 [s]
 bouts_amp_thresh = 1000  # DEFAULT VALUE IS 0.13
 
-W1 = wsn_lite_webots.wsn('3D_spx15.0_spy2.0_spz0.1_cluttered')
-W2 = wsn_lite_webots.wsn('3D_spx15.0_spy2.0_spz0.1_ws_0.75')
-W3 = wsn_lite_webots.wsn('3D_spx15.0_spy2.0_spz0.2_cluttered')
-W4 = wsn_lite_webots.wsn('3D_spx15.0_spy2.0_spz0.2_ws_0.75')
-W5 = wsn_lite_webots.wsn('3D_spx15.0_spy2.0_spz0.3_cluttered')
-W6 = wsn_lite_webots.wsn('3D_spx15.0_spy2.0_spz0.3_ws_0.75')
-list_W = [W1, W2, W3, W4, W5, W6]
+W1 = wsn_lite_webots.wsn('3D_spx12.5_spy3.0_spz1.0_ws_0.75')
+W2 = wsn_lite_webots.wsn('3D_spx13.0_spy2.0_spz1.4_ws_0.75')
+W3 = wsn_lite_webots.wsn('3D_spx14.0_spy2.0_spz1.2_ws_0.75')
+W4 = wsn_lite_webots.wsn('3D_spx14.2_spy2.3_spz1.3_ws_0.75')
+W5 = wsn_lite_webots.wsn('3D_spx15.0_spy2.0_spz1.0_ws_0.75')
+list_W = [W1, W2, W3, W4, W5]
 list_bouts_amp_thresh = [None]*len(list_W)
 
-TSL1 = [0.1, 2, 15]  # (z, y, x)
-TSL2 = [0.1, 2, 15]  # (z, y, x)
-TSL3 = [0.2, 2, 15]  # (z, y, x)
-TSL4 = [0.2, 2, 15]  # (z, y, x)
-TSL5 = [0.3, 2, 15]  # (z, y, x)
-TSL6 = [0.3, 2, 15]  # (z, y, x)
+TSL1 = [1, 3, 12.5]  # (z, y, x)
+TSL2 = [1.4, 2, 13]  # (z, y, x)
+TSL3 = [1.2, 2, 14]  # (z, y, x)
+TSL4 = [1.3, 2.3, 14.2]  # (z, y, x)
+TSL5 = [1.0, 2, 15]  # (z, y, x)
 
-list_TSL = [TSL1, TSL2, TSL3, TSL4, TSL5, TSL6]
+list_TSL = [TSL1, TSL2, TSL3, TSL4, TSL5]
+
+error_mean = np.zeros(len(list_TSL))
+error_bouts = np.zeros(len(list_TSL))
 
 # plt.figure()
 # for i in range(180, W.c_ppm.shape[1]):
@@ -55,5 +56,11 @@ for i in range(len(list_W)):
                                                                       hl=half_life, method='knee', plot=False)
     list_W[i].plotGasMap(map_type='bouts-freq', timeframe=[tc-delta/2, tc+delta/2], bouts_hl=half_life,
                  bouts_ampthresh=list_bouts_amp_thresh[i], tsl=list_TSL[i])
+
+    error_mean[i] = list_W[i].computeError(map_type='mean', timeframe=[tc-delta/2, tc+delta/2], tsl=list_TSL[i])
+    error_bouts[i] = list_W[i].computeError(map_type='bouts-freq', timeframe=[tc-delta/2, tc+delta/2], tsl=list_TSL[i],
+                                            bouts_hl=half_life, bouts_ampthresh=list_bouts_amp_thresh[i])
+print('mean errors', error_mean)
+print('bouts errors', error_bouts)
 
 plt.show()

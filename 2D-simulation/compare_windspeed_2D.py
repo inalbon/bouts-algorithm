@@ -1,6 +1,8 @@
 import wsn_lite_webots
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import re
 
 X_GRID = 29
 Y_GRID = 7
@@ -11,29 +13,73 @@ delta = 5.0/60  # minutes
 tc = 2.5/60  # minutes
 
 # Parameters
-half_life = 0.01  # seconds DEFAULT VALUE IS 0.25 [s]
-bouts_amp_thresh = 5e3  # DEFAULT VALUE IS 0.13
+half_life = 0.03  # seconds DEFAULT VALUE IS 0.25 [s]
+bouts_amp_thresh = 0  # DEFAULT VALUE IS 0.13
+
+total_error_mean = []
+total_error_bouts = []
 
 # Load data
-W1 = wsn_lite_webots.wsn('2D_cluttered')
-W2 = wsn_lite_webots.wsn('2D_windspeed_0.25')
-W3 = wsn_lite_webots.wsn('2D_windspeed_0.5')
-W4 = wsn_lite_webots.wsn('2D_windspeed_0.75')
-W5 = wsn_lite_webots.wsn('2D_windspeed_1.0')
+for ws in [0.25, 0.5, 0.75, 1.0]:
+    directory = os.path.join(rf"C:\Users\Malik\Documents\Ecole\EPFL\Master\MA2\Semester project\GSL_using_mox_sensors\2D-simulation\logs_webots\ws_{ws}")
+    for root, dirs, files in os.walk(directory):
+        list_W = []
+        list_tsl = []
+        for file in files:
+            if file.endswith(".csv"):
+                list_W.append(wsn_lite_webots.wsn(file, ws))
+                m1 = re.search('spx_', file).span()  # spx coord.
+                m2 = re.search('_spy', file).span()  # spy coord.
+                m3 = re.search('_spz', file).span()  # spz coord.
+                m4 = re.search('_ws_', file).span()  # ws coord.
+                if m1 and m2 and m3 and m4:
+                    list_tsl.append([float(file[m3[1]+1:m4[0]]), float(file[m2[1]:m3[0]]), float(file[m1[1]:m2[0]])])
+                else:
+                    quit('WARNING: problem when reading files')
 
-list_W = [W1, W2, W3, W4, W5]
-list_bouts_amp_thresh = [None]*len(list_W)
+    list_bouts_amp_thresh = []
+    error_bout = []
+    error_mean = []
 
-# True Source Location
-TSL = [0.1, 2, 15]  # (z, y, x)
+    # Compute error of mean and bouts
+    i = 0
+    for W in list_W:
+        list_bouts_amp_thresh.append(W.compute_bouts_amps_threshold(timeframe=[tc - delta / 2, tc + delta / 2],
+                                                                  hl=half_life, method='std', plot=False))
 
-# Plot results
-for i in range(len(list_W)):
-    list_W[i].plotGasMap(map_type='mean', timeframe=[tc-delta/2, tc+delta/2], tsl=TSL)
+        error_mean.append(W.computeError(map_type='mean', timeframe=[tc-delta / 2, tc+delta / 2], tsl=list_tsl[i]))
+        error_bout.append(W.computeError(map_type='bouts-freq', timeframe=[tc-delta/2, tc+delta/2], tsl=list_tsl[i],
+                                               bouts_hl=half_life, bouts_ampthresh=list_bouts_amp_thresh[i]))
+        i = i+1
 
-    list_bouts_amp_thresh[i] = list_W[i].compute_bouts_amps_threshold(timeframe=[tc - delta / 2, tc + delta / 2],
-                                                                      hl=half_life, method='percentage', plot=False)
+    # Plot results
+    i=0
+    list_W[i].plotGasMap(map_type='mean', timeframe=[tc-delta/2, tc+delta/2], tsl=list_tsl[i])
     list_W[i].plotGasMap(map_type='bouts-freq', timeframe=[tc-delta/2, tc+delta/2], bouts_hl=half_life,
-                 bouts_ampthresh=list_bouts_amp_thresh[i], tsl=TSL)
+                         bouts_ampthresh=list_bouts_amp_thresh[i], tsl=list_tsl[i])
+
+    # Store error for each wind speed
+    total_error_mean.append(error_mean)
+    total_error_bouts.append(error_bout)
+
+    print(f'Wind speed of {ws} [m/s] done !')
+
+error_max = np.amax(np.array([total_error_mean, total_error_bouts]))
+
+plt.figure()
+plt.boxplot(total_error_mean)
+plt.title('Performance of mean response when varying wind speed')
+plt.xlabel('Wind speed [m/s]')
+plt.ylabel('Error between CME and TSL [m]')
+plt.xticks([1, 2, 3, 4], [0.25, 0.5, 0.75, 1.0])
+plt.ylim(0, error_max+0.1*error_max)
+
+plt.figure()
+plt.boxplot(total_error_bouts)
+plt.title('Performance of bouts algorithm when varying wind speed')
+plt.xlabel('Wind speed [m/s]')
+plt.ylabel('Error between BME and TSL [m]')
+plt.xticks([1, 2, 3, 4], [0.25, 0.5, 0.75, 1.0])
+plt.ylim(0, error_max+0.1*error_max)
 
 plt.show()

@@ -17,18 +17,19 @@ Z_GRID = 1
 
 
 class LogWsn(object):
-    def __init__(self, log_name):
+    def __init__(self, log_name, ws):
         self.dir_path = dirname(realpath(__file__))
-        print(self.dir_path)
+        #print(self.dir_path)
         self.log_name = log_name
         self.t_s = None
         self.c_ppm = None
         self.coords = None
+        self.ws = ws
 
     def parseLog(self):
-        exp_folder = join(self.dir_path, 'logs_webots', self.log_name) + '.csv'
+        exp_folder = join(self.dir_path, f'logs_webots/ws_{self.ws}', self.log_name)
 
-        # Read the log and save it into a list    
+        # Read the log and save it into a list
         with open(exp_folder, 'r', encoding='mac_roman') as csvfile:
             csvreader = csv.reader(csvfile, delimiter=',', quotechar='|')
             data_with_header = list(csvreader)
