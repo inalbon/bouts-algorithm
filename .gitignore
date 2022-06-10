@@ -187,3 +187,4 @@ fabric.properties
 # Extra
 *.csv
 *.png
+*.eps
