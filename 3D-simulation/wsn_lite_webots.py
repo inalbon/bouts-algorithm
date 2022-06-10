@@ -20,8 +20,8 @@ Z_GRID = 3
 
 class wsn:
 
-    def __init__(self, log_name):
-        L = log_wsn_webots.LogWsn(log_name)
+    def __init__(self, log_name, ws):
+        L = log_wsn_webots.LogWsn(log_name, ws)
         L.parseLog()
         
         self.t_s = L.t_s
